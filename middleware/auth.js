@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
 /** Convenience middleware to handle common auth cases in routes. */
 
-const jwt = require('jsonwebtoken');
-const { SECRET_KEY } = require('../config');
-const { UnauthorizedError } = require('../expressError');
+const jwt = require("jsonwebtoken");
+const { SECRET_KEY } = require("../config");
+const { UnauthorizedError } = require("../expressError");
 
 /** Middleware: Authenticate user.
  *
@@ -18,7 +18,7 @@ function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;
     if (authHeader) {
-      const token = authHeader.replace(/^[Bb]earer /, '').trim();
+      const token = authHeader.replace(/^[Bb]earer /, "").trim();
       res.locals.user = jwt.verify(token, SECRET_KEY);
     }
     return next();
@@ -57,13 +57,15 @@ function ensureAdmin(req, res, next) {
   }
 }
 
-/** Middleware to use when they must be admin.
+/** Middleware to use when they must provide a valid token & be user matching
+ *  username provided as route param.
  *
- * If not, raises Unauthorized.
+ *  If not, raises Unauthorized.
  */
 
-function ensureAdminOrCurrUser(req, res, next) {
+function ensureCorrectUserOrAdmin(req, res, next) {
   try {
+    const user = res.locals.user;
     if (!(user && (user.isAdmin || user.username === req.params.username))) {
       throw new UnauthorizedError();
     }
@@ -77,5 +79,5 @@ module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureAdmin,
-  ensureAdminOrCurrUser,
+  ensureCorrectUserOrAdmin,
 };
